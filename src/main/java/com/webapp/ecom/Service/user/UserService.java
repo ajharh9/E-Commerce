@@ -1,5 +1,6 @@
 package com.webapp.ecom.Service.user;
 
+import com.webapp.ecom.dto.UserDto;
 import com.webapp.ecom.exceptions.AlreadyExistsException;
 import com.webapp.ecom.exceptions.ResourceNotFoundException;
 import com.webapp.ecom.model.User;
@@ -7,6 +8,7 @@ import com.webapp.ecom.repository.UserRepository;
 import com.webapp.ecom.request.CreateUserRequest;
 import com.webapp.ecom.request.UserUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -15,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements IUserService{
     private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public User getUserById(Long userId) {
@@ -37,11 +40,10 @@ public class UserService implements IUserService{
 
     @Override
     public User updateUser(UserUpdateRequest request, Long userId) {
-        return userRepository.findById(userId).map((user)->{
-            user.setFirstName(request.getFirstName());
-            user.setLastName(request.getLastName());
-            userRepository.save(user);
-            return  user;
+        return userRepository.findById(userId).map((existingUser)->{
+            existingUser.setFirstName(request.getFirstName());
+            existingUser.setLastName(request.getLastName());
+            return userRepository.save(existingUser);
             }).orElseThrow(()-> new ResourceNotFoundException("User not found"));
     }
 
@@ -50,5 +52,10 @@ public class UserService implements IUserService{
         userRepository.findById(userId).ifPresentOrElse(userRepository::delete,()-> {
             throw new ResourceNotFoundException("User not found");
         });
+    }
+
+    @Override
+    public UserDto convertUserToDto(User user){
+        return modelMapper.map(user,UserDto.class);
     }
 }

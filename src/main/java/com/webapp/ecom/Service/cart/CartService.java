@@ -2,6 +2,7 @@ package com.webapp.ecom.Service.cart;
 
 import com.webapp.ecom.exceptions.ResourceNotFoundException;
 import com.webapp.ecom.model.Cart;
+import com.webapp.ecom.model.User;
 import com.webapp.ecom.repository.CartItemRepository;
 import com.webapp.ecom.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RequiredArgsConstructor
@@ -46,12 +48,13 @@ public class CartService implements ICartService{
     }
 
     @Override
-    public Long initializeCart(){
-        Cart newCart = new Cart();
-        Long newCartId = cartIdGenerator.incrementAndGet();
-        newCart.setId(newCartId);
-        cartRepository.save(newCart);
-        return newCartId;
+    public Cart initializeCart(User user){
+        return Optional.ofNullable(getCartByUserId(user.getId()))
+                .orElseGet(()->{
+                    Cart cart = new Cart();
+                    cart.setUser(user);
+                    return cartRepository.save(cart);
+                });
     }
 
     @Override

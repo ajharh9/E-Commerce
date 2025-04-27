@@ -2,6 +2,7 @@ package com.webapp.ecom.controller;
 
 import com.webapp.ecom.Service.product.IProductService;
 import com.webapp.ecom.dto.ProductDto;
+import com.webapp.ecom.exceptions.AlreadyExistsException;
 import com.webapp.ecom.exceptions.ProductNotFoundException;
 import com.webapp.ecom.exceptions.ResourceNotFoundException;
 import com.webapp.ecom.model.Product;
@@ -15,8 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -48,8 +48,8 @@ public class ProductController {
             Product addedProduct = productService.addProduct(product);
             ProductDto productDto = productService.convertToDto(addedProduct);
             return ResponseEntity.ok(new ApiResponse("Add product Success", productDto));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+        } catch (AlreadyExistsException e) {
+            return ResponseEntity.status(CONFLICT)
                     .body(new ApiResponse(e.getMessage(),null));
         }
     }

@@ -2,7 +2,10 @@ package com.webapp.ecom.controller;
 
 import com.webapp.ecom.Service.cart.ICartItemService;
 import com.webapp.ecom.Service.cart.ICartService;
+import com.webapp.ecom.Service.user.IUserService;
 import com.webapp.ecom.exceptions.ResourceNotFoundException;
+import com.webapp.ecom.model.Cart;
+import com.webapp.ecom.model.User;
 import com.webapp.ecom.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,16 +19,16 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class CartItemController {
     private final ICartItemService cartItemService;
     private final ICartService cartService;
+    private final IUserService userService;
 
     @PostMapping("/item/add")
-    public ResponseEntity<ApiResponse> addItemToCart(@RequestParam(required = false) Long cartId,
+    public ResponseEntity<ApiResponse> addItemToCart(
                                                      @RequestParam Long productId,
                                                      @RequestParam Integer quantity){
         try {
-            if(cartId == null){
-                cartId = cartService.initializeCart();
-            }
-            cartItemService.addItemToCart(cartId,productId,quantity);
+            User user = userService.getUserById(1L);
+            Cart cart = cartService.initializeCart(user);
+            cartItemService.addItemToCart(cart.getId(), productId,quantity);
             return ResponseEntity.ok(new ApiResponse("product added to the cart",null));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(NOT_FOUND)

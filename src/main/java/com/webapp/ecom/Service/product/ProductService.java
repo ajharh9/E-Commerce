@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import com.webapp.ecom.dto.ImageDto;
 import com.webapp.ecom.dto.ProductDto;
+import com.webapp.ecom.exceptions.AlreadyExistsException;
 import com.webapp.ecom.model.Category;
 import com.webapp.ecom.model.Image;
 import com.webapp.ecom.repository.CategoryRepository;
@@ -45,6 +46,9 @@ public class ProductService implements IProductService{
 //        if yes set it as the new product category
 //        if not, then save it as a new category
 //        then set it as the new product category
+        if(productExists(request.getName(), request.getBrand())){
+            throw new AlreadyExistsException(request.getBrand()+" "+ request.getName()+" already exists, Instead of adding product, try updating the already existing product");
+        }
 
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                 .orElseGet(()-> {
@@ -54,6 +58,10 @@ public class ProductService implements IProductService{
                 );
         request.setCategory(category);
         return productRepository.save(createProduct(request,category));
+    }
+
+    private boolean productExists(String name, String brand){
+        return productRepository.existsByNameAndBrand(name,brand);
     }
 
     private Product createProduct(AddProductRequest request, Category category){
